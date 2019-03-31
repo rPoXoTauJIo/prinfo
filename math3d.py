@@ -1,4 +1,3 @@
-import math
 
 class Point3:
     
@@ -39,7 +38,6 @@ class Point3:
     def __truediv__(self, other):
         return Point3(self.x / other.x, self.y / other.y, self.z / other.z)
 
-    # NOTE: py2 needs math.sqrt, **(1/2) returns 1.0 otherwise
     @classmethod
     def Distance(cls, self, other):
-        return math.sqrt((other.x - self.x)**2 + (other.y - self.y)**2 + (other.z - self.z)**2)
+        return ((other.x - self.x)**2 + (other.y - self.y)**2 + (other.z - self.z)**2) **(0.5)
