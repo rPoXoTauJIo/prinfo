@@ -1,11 +1,10 @@
 # --------------------------------------------------------------------------
-# Project Reality analytics module by rpoxo
+# Project Reality prinfo by rpoxo
 #
-# ~ analytics.py
+# ~ prinfo.py
 #
 # Description:
-#
-# 
+#   displays data about vehicle
 #
 # -------------------------------------------------------------------------
 
