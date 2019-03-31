@@ -21,9 +21,6 @@ import host
 # importing project reality packages
 import game.realitytimer as rtimer
 
-# importing custom modules
-import constants as C
-
 G_TRACKED_OBJECT = None
 G_UPDATE_TIMER = None
 G_UPDATE_LAST = 0.0
@@ -46,14 +43,8 @@ def deinit():
 # ------------------------------------------------------------------------
 def onGameStatusChanged(status):
     if status == bf2.GameStatus.Playing:
-        # registering chatMessage handler
-        host.registerHandler('ChatMessage', onChatMessage, 1)
-
-        # test stuff2
         host.registerHandler('EnterVehicle', onEnterVehicle)
         host.registerHandler('ExitVehicle', onExitVehicle)
-
-        debugMessage('===== FINISHED OBJMOD INIT =====')
 
 def debugMessage(msg):
     host.rcon_invoke('echo "%s"' % (str(msg)))
@@ -82,19 +73,23 @@ def resetUpdateTimer():
     
     debugMessage('resetUpdateTimer(): reloaded updated timer')
 
-# offloading debug
-# tnx pie&mats for ideas, althorugh my implementation is worse
 def onUpdate(data=''):
     global G_UPDATE_LAST
 
     time_wall_now = host.timer_getWallTime()
-    time_delta = time_wall_now - G_UPDATE_LAST
-    time_epoch = time.time()
+
     G_UPDATE_LAST = host.timer_getWallTime()
-    #debugMessage('Time: %s+%s@%s' % (time_wall_now, time_delta, time_epoch))
+
     if G_TRACKED_OBJECT is not None and G_TRACKED_OBJECT.isValid():
         position = G_TRACKED_OBJECT.getPosition()
         rotation = G_TRACKED_OBJECT.getRotation()
+
+        debugIngame('%s position@%s: %s' % (G_TRACKED_OBJECT.templateName, time_wall_now, position))
+        debugIngame('%s rotation@%s: %s' % (G_TRACKED_OBJECT.templateName, time_wall_now, rotation))
+        # bf2 5 lines for output, so lets keep it always on top?
+        debugIngame('')
+        debugIngame('')
+        debugIngame('')
 
 
 def onEnterVehicle(player, vehicle, freeSoldier=False):
