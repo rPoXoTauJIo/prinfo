@@ -21,42 +21,13 @@ import host
 # importing project reality packages
 import game.realitytimer as rtimer
 
-
 # importing custom modules
-import debugger
+import prdebug
 import constants as C
 
-G_QUERY_MANAGER = None
 G_TRACKED_OBJECT = None
 G_UPDATE_TIMER = None
 G_UPDATE_LAST = 0.0
-# debugger
-D = debugger.Debugger()
-
-class QueryManager:
-
-    def __init__(self):
-        D.debugMessage('QueryManager::initializing')
-        
-        self.queries = []
-        
-        D.debugMessage('QueryManager::initialized!')
-    
-
-    def setupDefaultQueries(self):
-        del self.queries
-        self.queries = []
-
-        for vehicle in C.DEFAULT_QUERIES:
-            D.debugMessage('QueryManager::parsing %s' % (vehicle))
-            for vehicle_part in C.DEFAULT_QUERIES[vehicle]:
-                invoke_string = ('ObjectTemplate.active %s' % (str(vehicle_part)))
-                host.rcon_invoke(invoke_string)
-                D.debugMessage(invoke_string)
-                for param in C.DEFAULT_QUERIES[vehicle][vehicle_part]:
-                    host.rcon_invoke(param)
-                    D.debugMessage(param)
-    
 
 # ------------------------------------------------------------------------
 # Init
@@ -64,11 +35,6 @@ class QueryManager:
 
 
 def init():
-    global G_QUERY_MANAGER
-
-    G_QUERY_MANAGER = QueryManager()
-    G_QUERY_MANAGER.setupDefaultQueries()
-
     host.registerGameStatusHandler(onGameStatusChanged)
 
 # ------------------------------------------------------------------------
@@ -84,9 +50,6 @@ def deinit():
 # onGameStatusChanged
 # ------------------------------------------------------------------------
 def onGameStatusChanged(status):
-
-    D._debug_socket(str(status))
-
     if status == bf2.GameStatus.Playing:
         # registering chatMessage handler
         host.registerHandler('ChatMessage', onChatMessage, 1)
@@ -97,10 +60,6 @@ def onGameStatusChanged(status):
         # test stuff2
         host.registerHandler('EnterVehicle', onEnterVehicle)
         host.registerHandler('ExitVehicle', onExitVehicle)
-        
-        if G_QUERY_MANAGER is not None:
-            G_QUERY_MANAGER.setupDefaultQueries()
-
         resetUpdateTimer()
 
         D.debugMessage('===== FINISHED OBJMOD INIT =====')
