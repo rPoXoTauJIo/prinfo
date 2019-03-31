@@ -28,7 +28,8 @@ def init():
 
 class WatchVehicle:
     reporting = False
-    mode = 'position' # default
+    reporting_mode = None # default
+
     timer = None
 
     vehicle = None
@@ -40,6 +41,7 @@ class WatchVehicle:
     def init(cls):
         host.registerHandler('EnterVehicle', cls.onEnterVehicle)
         host.registerHandler('ExitVehicle', cls.onExitVehicle)
+
         radmin.addCommand("watch", cls.switchReporting, 777)
         radmin.addCommand("position", cls.switchReportPosition, 777)
         radmin.addCommand("rotation", cls.switchReportRotation, 777)
@@ -52,15 +54,15 @@ class WatchVehicle:
         
     @classmethod
     def switchReportPosition(cls, args, player):
-        cls.mode = 'position'
+        cls.reporting_mode = 'position'
     
     @classmethod
     def switchReportRotation(cls, args, player):
-        cls.mode = 'rotation'
+        cls.reporting_mode = 'rotation'
     
     @classmethod
     def switchReportSpeed(cls, args, player):
-        cls.mode = 'speed'
+        cls.reporting_mode = 'speed'
 
     @classmethod
     def onEnterVehicle(cls, player, vehicle, freeSoldier=False):
@@ -74,11 +76,15 @@ class WatchVehicle:
 
     @classmethod
     def _enableReporting(cls, vehicle):
-        cls.timer = rtimer.Timer(cls._tick, -1, 1)
-        cls.timer.setRecurring(0.01)
+        if vehicle is not None:
+            cls.reporting = True
+            cls.timer = rtimer.Timer(cls._tick, -1, 1)
+            cls.timer.setRecurring(0.1) # no need to have it faster than 0.03 as ingame prinouts will get buffered
     
     @classmethod
     def _disableReporting(cls):
+        cls.reporting = False
+        cls.reporting_mode = None
         if cls.timer:
             cls.timer.destroy()
             cls.timer = None
@@ -87,17 +93,30 @@ class WatchVehicle:
     
     @classmethod
     def _tick(cls, data):
+        if not cls.reporting: return
+        if not cls.vehicle: return
+
         epoch = host.timer_getWallTime()
         position = cls.vehicle.getPosition()
         rotation = cls.vehicle.getRotation()
 
-        if cls.mode == 'position':
+        if cls.reporting_mode == 'position':
             cls._position(cls.vehicle, epoch, Point3(*position))
-        elif cls.mode == 'rotation':
+        elif cls.reporting_mode == 'rotation':
             cls._rotation(cls.vehicle, epoch, rotation)
-        elif cls.mode == 'speed':
+        elif cls.reporting_mode == 'speed':
             delta = epoch - cls.vehicle_lasttime
             cls._speed(cls.vehicle, epoch, delta, Point3(*position), Point3(*cls.vehicle_lastposition))
+        else:
+            debugIngame('cls.reporting_mode: %s' % cls.reporting_mode)
+            debugIngame('pos_last: (%f, %f, %f)' % (cls.vehicle_lastposition[0], cls.vehicle_lastposition[1], cls.vehicle_lastposition[2]))
+            debugIngame('pos_curr: (%f, %f, %f)' % (position[0], position[1], position[2]))
+            debugIngame('epoch_last: %f' % cls.vehicle_lasttime)
+            debugIngame('epoch_curr: %f' % epoch)
+        
+        cls.vehicle_lastposition = position
+        cls.vehicle_lastrotation = rotation
+        cls.vehicle_lasttime = epoch
     
     @classmethod
     def _position(cls, vehicle, epoch, position):
@@ -108,10 +127,10 @@ class WatchVehicle:
         debugIngame('%s @%.3f rotation:(%.3f, %.3f, %.3f)' % (vehicle.templateName, epoch, rotation[0], rotation[1], rotation[2]))
 
     @classmethod
-    def _speed(cls, vehicle, epoch, delta, position1, position2):
-        distance = Point3.Distance(position1, position2)
+    def _speed(cls, vehicle, epoch, delta, current, last):
+        distance = Point3.Distance(current, last)
         speed = distance / delta
-        debugIngame('%s @%.3f-%.3f: %.4f' % (vehicle.templateName, epoch, delta, speed))
+        debugIngame('%s @%.3f for %.3f: %.4f' % (vehicle.templateName, epoch, delta, speed))
     
     @classmethod
     def _angleOfAttack(cls, vehicle, epoch, position0, position1, rotation1, delta):
@@ -121,27 +140,10 @@ def debugMessage(msg):
     host.rcon_invoke('echo "%s"' % (str(msg)))
 
 def debugIngame(msg):
-    debugMessage(msg)
+    #debugMessage(msg)
     try:
         host.rcon_invoke('game.sayAll "%s"' % (str(msg)))
     except:
         host.rcon_invoke('echo "debugIngame(FAIL): %s"' % (str(msg)))
-
-def infoRaw(vehicle):
-    epoch = host.timer_getWallTime()
-    if vehicle is not None and vehicle.isValid():
-        position = vehicle.getPosition()
-        rotation = vehicle.getRotation()
-
-        debugIngame('%s @%.2f position:(%.3f, %.3f, %.3f), rotation:(%.3f, %.3f, %.3f)' % (vehicle.templateName, epoch,
-                                                                                            position[0], position[1], position[2],
-                                                                                            rotation[0], rotation[1], rotation[2]
-                                                                                            ))
-
-def infoAoA(vehicle):
-    pass
-
-def infoAcceleration(vehicle):
-    pass
 
 
