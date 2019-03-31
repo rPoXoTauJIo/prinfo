@@ -16,7 +16,7 @@ import host
 import game.realityadmin as radmin
 import game.realitytimer as rtimer
 
-from math3d import Point3
+from math3d import Vec3
 
 # ------------------------------------------------------------------------
 # Init
@@ -46,6 +46,7 @@ class WatchVehicle:
         radmin.addCommand("position", cls.switchReportPosition, 777)
         radmin.addCommand("rotation", cls.switchReportRotation, 777)
         radmin.addCommand("speed", cls.switchReportSpeed, 777)
+        radmin.addCommand("aoa", cls.switchReportAngleOfAttack, 777)
     
     @classmethod
     def switchReporting(cls, args, player):
@@ -63,6 +64,10 @@ class WatchVehicle:
     @classmethod
     def switchReportSpeed(cls, args, player):
         cls.reporting_mode = 'speed'
+    
+    @classmethod
+    def switchReportAngleOfAttack(cls, args, player):
+        cls.reporting_mode = 'aoa'
 
     @classmethod
     def onEnterVehicle(cls, player, vehicle, freeSoldier=False):
@@ -101,12 +106,14 @@ class WatchVehicle:
         rotation = cls.vehicle.getRotation()
 
         if cls.reporting_mode == 'position':
-            cls._position(cls.vehicle, epoch, Point3(*position))
+            cls._position(cls.vehicle, epoch, Vec3(*position))
         elif cls.reporting_mode == 'rotation':
             cls._rotation(cls.vehicle, epoch, rotation)
         elif cls.reporting_mode == 'speed':
             delta = epoch - cls.vehicle_lasttime
-            cls._speed(cls.vehicle, epoch, delta, Point3(*position), Point3(*cls.vehicle_lastposition))
+            cls._speed(cls.vehicle, epoch, delta, Vec3(*position), Vec3(*cls.vehicle_lastposition))
+        elif cls.reporting_mode == 'aoa':
+            cls._aoa(cls.vehicle, epoch, Vec3(*position), Vec3(*cls.vehicle_lastposition))
         else:
             debugIngame('cls.reporting_mode: %s' % cls.reporting_mode)
             debugIngame('pos_last: (%f, %f, %f)' % (cls.vehicle_lastposition[0], cls.vehicle_lastposition[1], cls.vehicle_lastposition[2]))
@@ -128,13 +135,15 @@ class WatchVehicle:
 
     @classmethod
     def _speed(cls, vehicle, epoch, delta, current, last):
-        distance = Point3.Distance(current, last)
+        distance = Vec3.Distance(current, last)
         speed = distance / delta
         debugIngame('%s @%.3f for %.3f: %.4f' % (vehicle.templateName, epoch, delta, speed))
     
+    # TODO: this is bullshit tbh
     @classmethod
-    def _angleOfAttack(cls, vehicle, epoch, position0, position1, rotation1, delta):
-        pass
+    def _aoa(cls, vehicle, epoch, v1, v2):
+        aoa = Vec3.Angle(v1, v2)
+        debugIngame('%s @%.3f: %.4f' % (vehicle.templateName, epoch, aoa))
 
 def debugMessage(msg):
     host.rcon_invoke('echo "%s"' % (str(msg)))
