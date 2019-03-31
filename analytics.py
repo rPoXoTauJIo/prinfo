@@ -84,12 +84,10 @@ def onUpdate(data=''):
         position = G_TRACKED_OBJECT.getPosition()
         rotation = G_TRACKED_OBJECT.getRotation()
 
-        debugIngame('%s position@%s: %s' % (G_TRACKED_OBJECT.templateName, time_wall_now, position))
-        debugIngame('%s rotation@%s: %s' % (G_TRACKED_OBJECT.templateName, time_wall_now, rotation))
-        # bf2 5 lines for output, so lets keep it always on top?
-        debugIngame('')
-        debugIngame('')
-        debugIngame('')
+        debugIngame('%s @%.2f position:(%.3f, %.3f, %.3f), rotation:(%.3f, %.3f, %.3f)' % (G_TRACKED_OBJECT.templateName, time_wall_now,
+                                                                                            position[0], position[1], position[2],
+                                                                                            rotation[0], rotation[1], rotation[2]
+                                                                                            ))
 
 
 def onEnterVehicle(player, vehicle, freeSoldier=False):
