@@ -1,2 +1,2 @@
-import analytics
-analytics.init()
+import prinfo
+prinfo.init()
