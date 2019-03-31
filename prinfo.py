@@ -22,6 +22,7 @@ import game.realitytimer as rtimer
 
 G_TRACKED_OBJECT = None
 G_UPDATE_TIMER = None
+# last onUpdate call
 G_UPDATE_LAST = 0.0
 
 # ------------------------------------------------------------------------
@@ -76,18 +77,9 @@ def onUpdate(data=''):
     global G_UPDATE_LAST
 
     time_wall_now = host.timer_getWallTime()
-
     G_UPDATE_LAST = host.timer_getWallTime()
 
-    if G_TRACKED_OBJECT is not None and G_TRACKED_OBJECT.isValid():
-        position = G_TRACKED_OBJECT.getPosition()
-        rotation = G_TRACKED_OBJECT.getRotation()
-
-        debugIngame('%s @%.2f position:(%.3f, %.3f, %.3f), rotation:(%.3f, %.3f, %.3f)' % (G_TRACKED_OBJECT.templateName, time_wall_now,
-                                                                                            position[0], position[1], position[2],
-                                                                                            rotation[0], rotation[1], rotation[2]
-                                                                                            ))
-
+    infoRaw(G_TRACKED_OBJECT, time_wall_now)
 
 def onEnterVehicle(player, vehicle, freeSoldier=False):
     global G_TRACKED_OBJECT
@@ -103,3 +95,14 @@ def onExitVehicle(player, vehicle):
     G_TRACKED_OBJECT = None
     debugMessage('Player exited %s' % (vehicle.templateName))
     resetUpdateTimer()
+
+
+def infoRaw(vehicle, epoch):
+    if vehicle is not None and vehicle.isValid():
+        position = vehicle.getPosition()
+        rotation = vehicle.getRotation()
+
+        debugIngame('%s @%.2f position:(%.3f, %.3f, %.3f), rotation:(%.3f, %.3f, %.3f)' % (vehicle.templateName, epoch,
+                                                                                            position[0], position[1], position[2],
+                                                                                            rotation[0], rotation[1], rotation[2]
+                                                                                            ))
