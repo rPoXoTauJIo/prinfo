@@ -1,57 +1,51 @@
-# test file to verify some math
+# test file to verify some shit outside bf2, too lazy to launch
+import os
+import sys
+import errno
 
-from math3d import Vec3
+import mocksbf2
 
-pos_last = (-213.531235, 364.275757, -638.474731)
-pos_curr = (-233.400757, 367.863708, -652.031128)
-last = 224.386581
-curr = 224.516510
+# work around for bf2&pr modules imports
+def mock_bf2_imports(root, mod):
+    host = mocksbf2.DummyHost(root, mod)
+    sys.modules['host'] = host
+    sys.modules['bf2'] = host.bf2
+    sys.modules['game'] = host.game
+    sys.modules['game.realityadmin'] = host.game.realityadmin
+    sys.modules['game.realitytimer'] = host.game.realitytimer
+    import prinfo
 
+    return prinfo, host
 
-samples = [
-    { # base
-       'position_last' : (0.0, 0.0, 0.0),
-       'position_curr' : (0.0, 0.0, 0.0),
-       'time_last' : 0.0,
-       'time_curr' : 0.1
-    },
-    { # shot1 fast
-       'position_last' : (-213.531235, 364.275757, -638.474731),
-       'position_curr' : (-233.400757, 367.863708, -652.031128),
-       'time_last' : 224.386581,
-       'time_curr' : 224.516510
-    },
-    { # shot1 slow
-       'position_last' : (-658.850098, 338.604614, -83.169693),
-       'position_curr' : (-667.007629, 339.080719, -84.947243),
-       'time_last' : 254.162415,
-       'time_curr' : 254.292343
-    },
-    { # shot2 fast
-       'position_last' : (415.253814497, 535.726684570, -329.567199707),
-       'position_curr' : (421.402923584, 533.729553223, -345.641998291),
-       'time_last' : 0.0,
-       'time_curr' : 0.100098
-    },
-]
+def guess_PR_path(workdir):
+    parts = os.path.normpath(workdir).split(os.sep)
+    parts_root = []
+    for part_id, part in enumerate(parts):
+        if part == 'mods':
+            mod = parts[part_id + 1]
+            break
+        parts_root.append(part)
+    root = os.sep.join(parts_root)
+    modPath = os.path.join(root, 'mods', mod)
 
-def speed(data):
-    pos_last = data['position_last']
-    pos_curr = data['position_curr']
-    time_last = data['time_last']
-    time_curr = data['time_curr']
-    
-    delta = time_curr - time_last
+    if 'PRBF2.exe' not in os.listdir(root): raise IOError('Could not find PRBF2.exe in %s' % root)
+    moditems = os.listdir(modPath)
+    if 'levels' not in moditems: raise IOError('Could not find levels in %s' % modPath)
+    if 'clientarchives.con' not in moditems: raise IOError('Could not find clientarchives.con in %s' % modPath)
+    if 'serverarchives.con' not in moditems: raise IOError('Could not find serverarchives.con in %s' % modPath)
+    return root, mod
 
-    distance = Vec3.Distance(Vec3(*pos_curr), Vec3(*pos_last))
-    speed = distance / delta
-    
-    return speed
+def main():
+    workdir = os.getcwd()
+    root, mod = guess_PR_path(workdir)
+    prinfo, _ = mock_bf2_imports(root, mod)
 
-for sample in samples:
-    print(speed(sample))
+    prinfo.WatchVehicle.switchLogging('', mocksbf2.DummyPlayer('rpoxo'))
+    position = (0.0123123, -123.0123123, 612.0123123)
+    rotation = (0.0123123, -123.0123123, 612.0123123)
+    epoch = 123123.0123123
+    msg = 'position: %s\nrotation: %s\nepoch: %s' % (position, rotation, epoch)
+    print(msg)
 
-smp1 = Vec3(*samples[3]['position_last'])
-smp2 = Vec3(*samples[3]['position_curr'])
-aoa = Vec3.Angle(smp1, smp2)
-print(aoa)
+if __name__ == '__main__':
+    main()

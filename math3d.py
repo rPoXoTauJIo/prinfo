@@ -4,7 +4,7 @@
 
 import math
 
-class Vec3(object):
+class Point3d(object):
 
     def __init__(self, x, y, z):
         self.x = x
@@ -20,38 +20,23 @@ class Vec3(object):
         x = v1.y * v2.z - v1.z * v2.y
         y = v1.x * v2.x - v1.x * v2.z
         z = v1.z * v2.y - v1.y * v2.x
-        return Vec3(x, y, z)
+        return Point3d(x, y, z)
 
     @staticmethod
     def normalize(v):
         return v / v.norm()
 
     def norm(self):
-        return math.sqrt(Vec3.dot(self, self))
+        return math.sqrt(Point3d.dot(self, self))
 
     def __add__(self, v):
-        return Vec3(self.x + v.x, self.y + v.y, self.z + v.z)
+        return Point3d(self.x + v.x, self.y + v.y, self.z + v.z)
 
     def __neg__(self):
-        return Vec3(-self.x, -self.y, -self.z)
+        return Point3d(-self.x, -self.y, -self.z)
 
     def __sub__(self, v):
         return self + (-v)
-
-    def __mul__(self, v):
-        if isinstance(v, Vec3):
-            return Vec3(self.x * v.x, self.y * v.y, self.z * v.z)
-        else:
-            return Vec3(self.x * v, self.y * v, self.z * v)
-
-    def __rmul__(self, v):
-        return self.__mul__(v)
-
-    def __div__(self, v):
-        if isinstance(v, Vec3):
-            return Vec3(self.x / v.x, self.y / v.y, self.z / v.z)
-        else:
-            return Vec3(self.x / v, self.y / v, self.z / v)
 
     def __str__(self):
         return '(%.4f, %.4f, %.4f)' % (self.x, self.y, self.z)
@@ -59,7 +44,3 @@ class Vec3(object):
     @classmethod
     def Distance(cls, v1, v2):
         return ((v2.x - v1.x)**2 + (v2.y - v1.y)**2 + (v2.z - v1.z)**2) **(0.5)
-
-    @classmethod
-    def Angle(cls, v1, v2):
-        return math.acos(Vec3.dot(Vec3.normalize(v1), Vec3.normalize(v2))) * 180.0/math.pi
