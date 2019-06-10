@@ -99,6 +99,7 @@ class WatchVehicle:
     @classmethod
     def onExitVehicle(cls, player, vehicle):
         cls._disableReporting()
+        cls._disableLogging()
         debugIngame('%s exited %s' % (player.getName(), vehicle.templateName))
 
     @classmethod
@@ -140,11 +141,14 @@ class WatchVehicle:
         cls.logging = True
 
         filename = os.path.join(host.sgl_getModDirectory(), 'Logs', 'prinfo_' + datetime.datetime.now().strftime("%Y%m%d_%H_%M") + '.log')
+        if vehicle:
+            filename = os.path.join(host.sgl_getModDirectory(), 'Logs', 'prinfo_' + datetime.datetime.now().strftime("%Y%m%d_%H_%M_") + vehicle.templateName + '.log')
         cls.logging_fo = open(filename, 'w')
         debugIngame('Log path is %s' % os.path.abspath(filename))
 
         cls._enableTimer()
-        if vehicle is not None: cls.vehicle = vehicle
+        if vehicle is not None:
+            cls.vehicle = vehicle
         
     @classmethod
     def _disableLogging(cls):
