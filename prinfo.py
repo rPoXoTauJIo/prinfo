@@ -98,8 +98,8 @@ class WatchVehicle:
 
     @classmethod
     def onExitVehicle(cls, player, vehicle):
-        cls._disableReporting()
-        cls._disableLogging()
+        if cls.reporting: cls._disableReporting()
+        if cls.logging: cls._disableLogging()
         debugIngame('%s exited %s' % (player.getName(), vehicle.templateName))
 
     @classmethod
